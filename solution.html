@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mzc's Blog - 盛最多水的容器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { 
+            font-family: 'Noto Sans SC', sans-serif; 
+            background-color: #050505; 
+            color: #d4d4d8; 
+            background-image: radial-gradient(#1c1c1c 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .font-brand { font-family: 'Outfit', sans-serif; }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+        
+        /* Glassmorphism Cards */
+        .glass-panel {
+            background: rgba(23, 23, 23, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #262626; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #404040; }
+
+        /* Syntax Highlighting Colors */
+        .syntax-kw { color: #c678dd; } 
+        .syntax-func { color: #61afef; } 
+        .syntax-type { color: #e5c07b; }
+        .syntax-str { color: #98c379; }
+        
+        .glow-hover:hover {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-blue-500/30">
+
+    <!-- Blog Header -->
+    <header class="fixed top-0 w-full z-50 border-b border-white/5 bg-black/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <a href="#" class="font-brand text-2xl font-bold tracking-tighter text-white flex items-center gap-2">
+                    <div class="w-8 h-8 bg-white text-black rounded-lg flex items-center justify-center font-black text-sm">M</div>
+                    zc's Blog
+                </a>
+                <nav class="hidden md:flex gap-6 text-sm font-medium text-zinc-400">
+                    <a href="#" class="hover:text-white transition-colors">首页</a>
+                    <a href="#" class="text-white">算法题解</a>
+                    <a href="#" class="hover:text-white transition-colors">关于我</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-zinc-500 font-mono hidden sm:inline-block">Problem ID: 11 / ZJUT</span>
+                <a href="https://github.com" target="_blank" class="p-2 hover:bg-white/10 rounded-full transition text-zinc-400 hover:text-white">
+                    <i data-lucide="github" class="w-5 h-5"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow pt-24 pb-16 px-4 sm:px-6">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Sidebar: Problem & Visualization -->
+            <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24 h-fit">
+                
+                <!-- Title Block -->
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 text-blue-400 text-sm font-mono mb-1">
+                        <span class="px-1.5 py-0.5 border border-blue-500/30 rounded">Medium</span>
+                        <span>贪心 / 双指针</span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-bold text-white tracking-tight">盛最多水的容器</h1>
+                    <p class="text-zinc-400 leading-relaxed">
+                        给定一个长度为 <code class="bg-white/10 px-1 rounded text-zinc-300">n</code> 的整数数组 <code class="bg-white/10 px-1 rounded text-zinc-300">height</code>。
+                        找出两条线，使得它们与 x 轴共同构成的容器可以容纳最多的水。
+                    </p>
+                </div>
+
+                <!-- Visualizer -->
+                <div class="glass-panel rounded-xl p-5 border-t-4 border-t-blue-500 shadow-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-sm font-bold text-zinc-300 uppercase tracking-widest flex items-center gap-2">
+                            <i data-lucide="activity" class="w-4 h-4 text-blue-500"></i> 
+                            Algorithm Visualizer
+                        </h3>
+                        <div class="flex gap-1">
+                            <button onclick="togglePlay()" id="playBtn" class="p-2 hover:bg-white/10 rounded-lg text-white transition">
+                                <i data-lucide="play" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="resetVis()" class="p-2 hover:bg-white/10 rounded-lg text-zinc-400 transition">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="relative h-48 w-full bg-zinc-900/50 rounded-lg border border-white/5 flex items-end justify-center px-2 pt-8 pb-1 gap-1" id="chart-container">
+                        <!-- Bars injected by JS -->
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-2 gap-4">
+                        <div class="bg-zinc-900/80 p-3 rounded border border-white/5">
+                            <div class="text-[10px] text-zinc-500 uppercase">Current Area</div>
+                            <div class="text-xl font-mono text-white" id="stat-curr">0</div>
+                        </div>
+                        <div class="bg-zinc-900/80 p-3 rounded border border-white/5">
+                            <div class="text-[10px] text-zinc-500 uppercase">Max Area</div>
+                            <div class="text-xl font-mono text-blue-400" id="stat-area">0</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-xs text-zinc-400 leading-relaxed border-l-2 border-blue-500/50 pl-3">
+                        <span id="strategy-text">双指针向内收敛，总是移动较短的那一边。</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Solutions (Ordered by Complexity High -> Low) -->
+            <div class="lg:col-span-7 space-y-8">
+
+                <!-- 1. O(n^2) Brute Force -->
+                <section class="glass-panel rounded-xl overflow-hidden group hover:border-zinc-600 transition duration-300">
+                    <div class="bg-zinc-900/60 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-zinc-200">1. 暴力枚举法</h2>
+                        <span class="text-xs font-mono text-orange-400 bg-orange-400/10 px-2 py-1 rounded">O(n²) Time</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4 space-y-2">
+                            <h4 class="text-sm font-semibold text-zinc-300">💡 算法核心</h4>
+                            <p class="text-sm text-zinc-400 leading-relaxed">
+                                最直观的思路。我们不需要任何技巧，直接使用两层循环枚举所有可能的左边界 <code class="text-orange-300">i</code> 和右边界 <code class="text-orange-300">j</code>。
+                                对于每一对 <code class="text-zinc-300">(i, j)</code>，计算其面积并更新最大值。
+                            </p>
+                            <p class="text-sm text-zinc-500 italic">
+                                缺点：当 N 达到 10,000 以上时，运算次数过亿，会导致 Time Limit Exceeded (TLE)。
+                            </p>
+                        </div>
+                        <div class="bg-[#0d1117] rounded-lg p-4 border border-white/5 relative">
+                            <div class="absolute top-0 right-0 px-2 py-1 text-[10px] text-zinc-600 font-mono">C++</div>
+<pre class="text-sm code-font overflow-x-auto"><span class="syntax-kw">#include</span><span class="syntax-str">&lt;bits/stdc++.h&gt;</span>
+<span class="syntax-kw">using namespace</span> std;
+<span class="syntax-type">int</span> n,a[105],ans;
+<span class="syntax-type">int</span> <span class="syntax-func">main</span>(){
+    cin&gt;&gt;n;
+    <span class="syntax-kw">for</span>(<span class="syntax-type">int</span> i=0;i&lt;n;i++)cin&gt;&gt;a[i];
+    <span class="syntax-comment">// 枚举每一种组合</span>
+    <span class="syntax-kw">for</span>(<span class="syntax-type">int</span> i=0;i&lt;n;i++)
+        <span class="syntax-kw">for</span>(<span class="syntax-type">int</span> j=i+1;j&lt;n;j++)
+            ans=<span class="syntax-func">max</span>(ans,(j-i)*<span class="syntax-func">min</span>(a[i],a[j]));
+    cout&lt;&lt;ans;
+}</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. O(n log n) Sorting -->
+                <section class="glass-panel rounded-xl overflow-hidden group hover:border-zinc-600 transition duration-300">
+                    <div class="bg-zinc-900/60 px-6 py-4 border-b border-white/5 flex justify-between items-center">
+                        <h2 class="text-lg font-bold text-zinc-200">2. 排序贪心法</h2>
+                        <span class="text-xs font-mono text-purple-400 bg-purple-400/10 px-2 py-1 rounded">O(n log n) Time</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4 space-y-2">
+                            <h4 class="text-sm font-semibold text-zinc-300">💡 算法核心</h4>
+                            <p class="text-sm text-zinc-400 leading-relaxed">
+                                这是一个视角的转换。如果我们把柱子按<strong>高度从大到小</strong>排序处理，会发生什么？
+                            </p>
+                            <ul class="list-disc list-inside text-sm text-zinc-400 pl-2 space-y-1">
+                                <li>当我们处理第 <code class="text-purple-300">k</code> 高的柱子时，之前处理过的所有柱子都比它高。</li>
+                                <li>这意味着：这第 <code class="text-purple-300">k</code> 根柱子一定是容器的<strong>短板</strong>。</li>
+                                <li>既然高度已定（就是当前柱子的高度），要让面积最大，我们只需要找<strong>最宽</strong>的容器。</li>
+                            </ul>
+                            <p class="text-sm text-zinc-400 leading-relaxed mt-2">
+                                我们只需要记录目前为止遇到的所有柱子的<strong>最小原始下标</strong>和<strong>最大原始下标</strong>，计算当前柱子到这两端的距离即可。
+                            </p>
+                        </div>
+                        <div class="bg-[#0d1117] rounded-lg p-4 border border-white/5 relative">
+                            <div class="absolute top-0 right-0 px-2 py-1 text-[10px] text-zinc-600 font-mono">C++</div>
+<pre class="text-sm code-font overflow-x-auto"><span class="syntax-kw">#include</span><span class="syntax-str">&lt;bits/stdc++.h&gt;</span>
+<span class="syntax-kw">using namespace</span> std;
+<span class="syntax-type">int</span> n,a[105],p[105],mn=1e9,mx=-1,ans;
+<span class="syntax-type">int</span> <span class="syntax-func">main</span>(){
+    cin&gt;&gt;n;
+    <span class="syntax-kw">for</span>(<span class="syntax-type">int</span> i=0;i&lt;n;i++)cin&gt;&gt;a[i],p[i]=i;
+    <span class="syntax-comment">// 按高度降序排序索引</span>
+    <span class="syntax-func">sort</span>(p,p+n,[](<span class="syntax-type">int</span> x,<span class="syntax-type">int</span> y){<span class="syntax-kw">return</span> a[x]&gt;a[y];});
+    <span class="syntax-kw">for</span>(<span class="syntax-type">int</span> i=0;i&lt;n;i++){
+        <span class="syntax-type">int</span> idx=p[i]; <span class="syntax-comment">// 当前柱子的原始位置</span>
+        <span class="syntax-kw">if</span>(mx!=-1)ans=<span class="syntax-func">max</span>(ans,a[idx]*<span class="syntax-func">max</span>(<span class="syntax-func">abs</span>(idx-mn),<span class="syntax-func">abs</span>(idx-mx)));
+        mn=<span class="syntax-func">min</span>(mn,idx);mx=<span class="syntax-func">max</span>(mx,idx);
+    }
+    cout&lt;&lt;ans;
+}</pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. O(n) Two Pointers -->
+                <section class="glass-panel rounded-xl overflow-hidden ring-1 ring-blue-500/50 shadow-[0_0_30px_rgba(59,130,246,0.1)]">
+                    <div class="bg-gradient-to-r from-blue-900/40 to-transparent px-6 py-4 border-b border-white/5 flex justify-between items-center">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg font-bold text-white">3. 双指针法 (最优解)</h2>
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-blue-400"></i>
+                        </div>
+                        <span class="text-xs font-mono text-blue-400 bg-blue-400/10 px-2 py-1 rounded">O(n) Time</span>
+                    </div>
+                    <div class="p-6">
+                        <div class="mb-4 space-y-3">
+                            <h4 class="text-sm font-semibold text-zinc-300">💡 算法核心与证明</h4>
+                            <p class="text-sm text-zinc-400 leading-relaxed">
+                                这是对搜索空间的完美剪枝。我们从数组两端 <code class="text-blue-300">L=0, R=n-1</code> 开始。
+                            </p>
+                            <div class="bg-blue-500/5 p-3 rounded border border-blue-500/10">
+                                <p class="text-sm text-zinc-300 font-medium mb-1">为什么移动短板？(Proof)</p>
+                                <p class="text-xs text-zinc-400 leading-relaxed">
+                                    假设当前左边 <code class="text-blue-300">h[L]</code> 比右边 <code class="text-blue-300">h[R]</code> 短。
+                                    <br>此时容器高度由 <code class="text-blue-300">h[L]</code> 决定。
+                                    <br>如果我们保持 <code class="text-blue-300">L</code> 不动而向内移动 <code class="text-blue-300">R</code>，无论右边遇到多高的板，容器的高度永远不会超过 <code class="text-blue-300">h[L]</code>，但宽度变小了。
+                                    <br><strong>结论：</strong> 只要 <code class="text-blue-300">L</code> 是短板，<code class="text-blue-300">(L, L+1)...(L, R-1)</code> 这一系列组合的面积一定小于当前面积。因此我们可以安全地舍弃 <code class="text-blue-300">L</code>，将其右移。
+                                </p>
+                            </div>
+                        </div>
+                        <div class="bg-[#0d1117] rounded-lg p-4 border border-white/5 relative">
+                            <div class="absolute top-0 right-0 px-2 py-1 text-[10px] text-zinc-600 font-mono">C++</div>
+<pre class="text-sm code-font overflow-x-auto"><span class="syntax-kw">#include</span><span class="syntax-str">&lt;bits/stdc++.h&gt;</span>
+<span class="syntax-kw">using namespace</span> std;
+<span class="syntax-type">int</span> n,a[105],l,r,mx;
+<span class="syntax-type">int</span> <span class="syntax-func">main</span>(){
+    cin&gt;&gt;n;
+    <span class="syntax-kw">for</span>(<span class="syntax-type">int</span> i=0;i&lt;n;i++)cin&gt;&gt;a[i];
+    r=n-1;
+    <span class="syntax-comment">// 只要没相遇，就继续计算</span>
+    <span class="syntax-kw">while</span>(l&lt;r){
+        <span class="syntax-comment">// 计算当前面积：宽度 * 短板高度</span>
+        mx=<span class="syntax-func">max</span>(mx,(r-l)*<span class="syntax-func">min</span>(a[l],a[r]));
+        <span class="syntax-comment">// 谁短谁移动，试图找到更高的板</span>
+        a[l]&lt;a[r]?l++:r--;
+    }
+    cout&lt;&lt;mx;
+}</pre>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <footer class="border-t border-white/5 py-8 mt-8">
+        <div class="max-w-7xl mx-auto text-center text-zinc-600 text-xs">
+            &copy; 2024 Mzc's Algorithm Blog. All rights reserved. <br>
+            Designed for learning and sharing.
+        </div>
+    </footer>
+
+    <script>
+        lucide.createIcons();
+
+        // Data & State
+        const data = [1, 8, 6, 2, 5, 4, 8, 3, 7];
+        let l = 0;
+        let r = data.length - 1;
+        let maxArea = 0;
+        let isRunning = false;
+        let timer = null;
+        let isDone = false;
+
+        const chartEl = document.getElementById('chart-container');
+        const statCurr = document.getElementById('stat-curr');
+        const statArea = document.getElementById('stat-area');
+        const strategyText = document.getElementById('strategy-text');
+        const playBtn = document.getElementById('playBtn');
+
+        function render() {
+            chartEl.innerHTML = '';
+            const maxVal = Math.max(...data);
+
+            data.forEach((val, i) => {
+                const bar = document.createElement('div');
+                bar.className = 'flex-1 rounded-t-sm transition-all duration-300 relative group';
+                
+                // Color Logic
+                if (i === l || i === r) {
+                    bar.className += i === l ? ' bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : ' bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)]';
+                    bar.style.opacity = '1';
+                } else if (i > l && i < r) {
+                    bar.className += ' bg-zinc-700';
+                    bar.style.opacity = '0.5';
+                } else {
+                    bar.className += ' bg-zinc-800';
+                    bar.style.opacity = '0.2';
+                }
+
+                bar.style.height = `${(val / maxVal) * 100}%`;
+                
+                // Tooltip logic for height value
+                bar.innerHTML = `<span class="absolute -top-5 left-1/2 -translate-x-1/2 text-[10px] text-zinc-400 font-mono opacity-0 group-hover:opacity-100 transition">${val}</span>`;
+                
+                chartEl.appendChild(bar);
+            });
+
+            // Draw Water Level Line (Simplified)
+            if (!isDone) {
+                const h = Math.min(data[l], data[r]);
+                const waterLine = document.createElement('div');
+                waterLine.className = 'absolute border-t border-dashed border-blue-300/50 w-full pointer-events-none transition-all duration-300';
+                waterLine.style.bottom = `${(h / maxVal) * 100}%`;
+                waterLine.style.left = '0';
+                // Only show line between l and r roughly
+                chartEl.appendChild(waterLine);
+            }
+        }
+
+        function update() {
+            const h = Math.min(data[l], data[r]);
+            const curr = (r - l) * h;
+            
+            if (curr > maxArea) {
+                maxArea = curr;
+                statArea.classList.add('text-green-400');
+                setTimeout(() => statArea.classList.remove('text-green-400'), 300);
+            }
+            
+            statCurr.innerText = curr;
+            statArea.innerText = maxArea;
+
+            if (data[l] < data[r]) {
+                strategyText.innerHTML = `左边 ${data[l]} < 右边 ${data[r]}。左边是短板，<span class="text-blue-400">L 右移</span> 寻找更高边界。`;
+            } else {
+                strategyText.innerHTML = `左边 ${data[l]} >= 右边 ${data[r]}。右边是短板，<span class="text-purple-400">R 左移</span> 寻找更高边界。`;
+            }
+        }
+
+        function step() {
+            if (l >= r) {
+                isDone = true;
+                strategyText.innerText = "搜索完成。";
+                stop();
+                return;
+            }
+
+            const h = Math.min(data[l], data[r]);
+            maxArea = Math.max(maxArea, (r - l) * h);
+            
+            if (data[l] < data[r]) {
+                l++;
+            } else {
+                r--;
+            }
+            
+            render();
+            update();
+        }
+
+        function togglePlay() {
+            if (isRunning) {
+                stop();
+            } else {
+                if (isDone) resetVis();
+                isRunning = true;
+                playBtn.innerHTML = '<i data-lucide="pause" class="w-4 h-4"></i>';
+                lucide.createIcons();
+                timer = setInterval(step, 1000);
+            }
+        }
+
+        function stop() {
+            isRunning = false;
+            clearInterval(timer);
+            playBtn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i>';
+            lucide.createIcons();
+        }
+
+        function resetVis() {
+            stop();
+            l = 0;
+            r = data.length - 1;
+            maxArea = 0;
+            isDone = false;
+            render();
+            update();
+            strategyText.innerText = "准备开始...";
+        }
+
+        // Init
+        render();
+        update();
+    </script>
+</body>
+</html>
