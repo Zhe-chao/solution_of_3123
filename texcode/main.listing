@@ -1,0 +1,24 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    for(int i=0; i<n; i++) cin >> a[i];
+
+    int l = 0, r = n - 1, mx = 0;
+
+    while (l < r) {
+        // 计算当前面积
+        int h = min(a[l], a[r]);
+        mx = max(mx, (r - l) * h);
+
+        // 贪心策略：谁短移动谁
+        if (a[l] < a[r]) l++;
+        else r--;
+    }
+
+    cout << mx << endl;
+    return 0;
+}

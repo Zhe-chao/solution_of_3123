@@ -1,237 +1,270 @@
-\documentclass[12pt]{ctexart}
+\documentclass[11pt, a4paper]{ctexart}
 
-% 基本排版与数学支持
-\usepackage[a4paper,margin=2.2cm]{geometry}
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{xcolor}
-\usepackage{listings}
-\usepackage{tcolorbox}
-\tcbuselibrary{skins,breakable}
+% =============================================================================
+% 宏包引入
+% =============================================================================
+\usepackage[top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm]{geometry} % 标准页边距
+\usepackage{amsmath, amssymb, amsfonts}   % 数学公式
+\usepackage{graphicx}                     % 图片
+\usepackage{xcolor}                       % 颜色
+\usepackage{listings}                     % 代码
+\usepackage{booktabs}                     % 三线表
+\usepackage{fancyhdr}                     % 页眉页脚
+\usepackage[colorlinks=true, linkcolor=NavyBlue, urlcolor=NavyBlue]{hyperref} 
+\usepackage{tcolorbox}                    % 文本框核心
+\tcbuselibrary{skins, breakable, listings} % tcolorbox 扩展库
 
-% 配色：亮色、清新天蓝风格
-% 背景偏白，主体文字深灰，强调色为天蓝
-\definecolor{pagebg}{HTML}{F9FAFF}   % 页面背景（极浅蓝白）
-\definecolor{cardbg}{HTML}{E0F2FE}   % 说明框背景（淡天蓝）
-\definecolor{codebg}{HTML}{F1F5F9}   % 代码背景（浅灰蓝）
-\definecolor{accent}{HTML}{0EA5E9}   % 主强调色：天蓝
-\definecolor{accent2}{HTML}{38BDF8}  % 辅强调色：更亮的天蓝
-\definecolor{textgray}{HTML}{0F172A} % 主体文字：深蓝灰
+% =============================================================================
+% 配色方案 (Scientific Deep Blue Theme)
+% =============================================================================
+\definecolor{NavyBlue}{HTML}{003f5c}      % 主色：深海军蓝
+\definecolor{AccentBlue}{HTML}{2f4b7c}    % 辅色
+\definecolor{BgGray}{HTML}{f5f7fa}        % 页面背景灰
+\definecolor{CodeBg}{HTML}{282c34}        % 代码背景：深色IDE风
 
-\pagecolor{pagebg}
-\color{textgray}
+% --- 代码高亮配色 (优化版) ---
+\definecolor{StringColor}{HTML}{98c379}   % 字符串：清新的绿色
+\definecolor{KeywordColor}{HTML}{c678dd}  % 关键字：紫色
+\definecolor{NumberColor}{HTML}{d19a66}   % 数字：橙色
+% [修改点 1] 注释颜色改为高亮浅灰，确保深色背景下清晰可见
+\definecolor{CommentColor}{HTML}{abb2bf}  
 
-% C++ 代码风格
-\lstdefinestyle{cppstyle}{%
-  language=C++,
-  backgroundcolor=\color{codebg},
-  basicstyle=\ttfamily\small\color{textgray},
-  keywordstyle=\color{accent}\bfseries,
-  commentstyle=\color{gray!70!black},
-  stringstyle=\color{accent2},
-  numberstyle=\tiny\color{gray},
-  numbers=left,
-  stepnumber=1,
-  numbersep=8pt,
-  tabsize=4,
-  showstringspaces=false,
-  breaklines=true,
-  columns=fullflexible
+% =============================================================================
+% 样式设置
+% =============================================================================
+
+% 1. 全局段落设置
+\setlength{\parindent}{0pt}       % 取消首行缩进
+\setlength{\parskip}{0.6em}       % 增加段间距
+
+% 2. 页眉页脚
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small \bfseries Problem 3123: Container With Most Water}
+\rhead{\small \thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+
+% 3. 代码块样式 (C++)
+\lstdefinestyle{mycpp}{
+    language=C++,
+    basicstyle=\footnotesize\ttfamily\color{white}, % 默认文字白色
+    backgroundcolor=\color{CodeBg},
+    keywordstyle=\color{KeywordColor}\bfseries,
+    commentstyle=\color{CommentColor}\itshape, % 使用新的高亮注释色
+    stringstyle=\color{StringColor},
+    numberstyle=\tiny\color{CommentColor},
+    identifierstyle=\color{white},
+    numbers=left,
+    stepnumber=1,
+    numbersep=10pt,
+    tabsize=4,
+    showspaces=false,
+    showstringspaces=false,
+    breaklines=true,
+    frame=none,
+    captionpos=b
 }
 
-% 算法说明与代码块外框
-\newtcolorbox{algobox}[1][]{%
-  breakable,
-  enhanced,
-  colback=cardbg,
-  colframe=accent,
-  boxrule=0.9pt,
-  arc=3pt,
-  left=8pt,right=8pt,top=6pt,bottom=6pt,
-  % 标题区域只设置字体即可，避免误用 tikz 的 colframe 关键字
-  title style={font=\bfseries\small},
-  coltitle=accent,
-  #1
+% 4. 题目描述框
+\newtcolorbox{problembox}[1][]{
+    enhanced,
+    colback=BgGray,          
+    colbacktitle=NavyBlue,   
+    coltitle=white,          
+    colframe=NavyBlue,       
+    fonttitle=\bfseries,
+    title={#1},
+    arc=3pt,
+    boxrule=0.5mm,
+    left=10pt, right=10pt, top=8pt, bottom=8pt,
+    shadow={1mm}{-1mm}{0mm}{black!10}
 }
 
-\newtcolorbox{codebox}[1][]{%
-  breakable,
-  enhanced,
-  colback=codebg,
-  colframe=accent!70,
-  boxrule=0.9pt,
-  arc=3pt,
-  left=4pt,right=4pt,top=4pt,bottom=4pt,
-  #1
+% 5. 算法模块框
+\newtcolorbox{algobox}[1][]{
+    enhanced,
+    breakable,
+    colback=white,
+    colframe=AccentBlue,
+    leftrule=3pt,            
+    rightrule=0pt, toprule=0pt, bottomrule=0pt,
+    arc=0pt,
+    coltitle=AccentBlue,
+    fonttitle=\bfseries\large,
+    title={#1},
+    parbox=false,            
+    detach title,            
+    before upper={\tcbtitle\par\vspace{0.3em}} 
 }
 
+% 6. 代码容器
+\newtcblisting{codebox}{
+    enhanced,
+    colback=CodeBg,
+    colframe=CodeBg,
+    arc=5pt,
+    listing only,
+    listing style=mycpp,
+    left=5pt, right=5pt, top=5pt, bottom=5pt
+}
+
+% =============================================================================
+% 正文开始
+% =============================================================================
 \begin{document}
 
+% --- 标题区域 ---
 \begin{center}
-  {\Huge 盛最多水的容器 \par}
-  \vspace{0.4em}
-  {\large 三种时间复杂度的对比题解}\par
-  \vspace{0.6em}
-  {\small Problem ID: 3123 / ZJUT}
+    {\huge \bfseries \color{NavyBlue} 盛最多水的容器} \\[0.5em]
+    {\Large \textit{Container With Most Water}} \\[1em]
+    {\color{gray} Problem ID: 3123 \quad | \quad Source: ZJUT OJ}
+    \vspace{1em}
+    \hrule height 1pt
 \end{center}
 
-\vspace{0.8em}
+% --- 题目描述 ---
+\begin{problembox}[题目描述]
+    给定一个长度为 $n$ 的整数数组 $\texttt{height}$。有 $n$ 条垂线，第 $i$ 条线的两个端点是 $(i, 0)$ 和 $(i, \text{height}[i])$。
+    
+    找出其中的两条线，使得它们与 $x$ 轴共同构成的容器可以容纳最多的水。
+    
+    \textbf{目标}：返回容器可以储存的最大水量。
+    \begin{equation*}
+        \text{Area} = (j - i) \times \min(\text{height}[i], \text{height}[j])
+    \end{equation*}
+\end{problembox}
 
-\begin{algobox}[title={题目简述}]
-给定数组 \(\text{height}[0\ldots n-1]\)，第 \(i\) 条竖线的高度为 \(\text{height}[i]\)。
-在所有两条竖线组成的容器中，求最大面积：
-\[
-  \text{area}(i,j) = (j-i)\cdot\min(\text{height}[i],\text{height}[j]).
-\]
-本题有三个典型解法：暴力 \(O(n^2)\)、排序贪心 \(O(n\log n)\)、双指针 \(O(n)\)。
-\end{algobox}
 
-\section*{一、暴力枚举 \(O(n^2)\)}
+\vspace{1em}
 
-\begin{algobox}[title={算法思路}]
-\begin{itemize}
-  \item 用两重循环枚举所有下标对 \((i,j)\)，其中 \(0\le i<j<n\)。
-  \item 对每一对 \((i,j)\) 计算面积 \((j-i)\cdot\min(h_i,h_j)\)，维护最大值。\\
-  这里 \(h_i=\text{height}[i]\)。
-  \item 时间复杂度为 \(O(n^2)\)，当 \(n\) 稍大时代码会偏慢，但逻辑最直观，适合作为入门思路。
-\end{itemize}
+% --- 方法一 ---
+\section*{一、暴力枚举法 (Brute Force)}
+
+\begin{algobox}[算法思路]
+    直接使用两层循环枚举所有可能的左边界 $i$ 和右边界 $j$。对于每一对 $(i, j)$，计算其面积并更新最大值。虽然逻辑简单，但计算量极大。
 \end{algobox}
 
 \begin{codebox}
-\lstset{style=cppstyle}
-\begin{lstlisting}
-#include <bits/stdc++.h>
-using namespace std;
-
-int n, a[105], ans;
-
-int main() {
-    cin >> n;
-    for (int i = 0; i < n; i++) cin >> a[i];
-
-    // 枚举每一种 (i, j) 组合
-    for (int i = 0; i < n; i++) {
-        for (int j = i + 1; j < n; j++) {
-            ans = max(ans, (j - i) * min(a[i], a[j]));
-        }
+// 核心逻辑片段
+for (int i = 0; i < n; i++) {
+    for (int j = i + 1; j < n; j++) {
+        // 宽度 * 高度瓶颈
+        ans = max(ans, (j - i) * min(a[i], a[j]));
     }
-
-    cout << ans;
-    return 0;
 }
-\end{lstlisting}
 \end{codebox}
 
-\section*{二、排序贪心 \(O(n\log n)\)}
+% --- 方法二 ---
+\section*{二、排序贪心法 (Sorting Strategy)}
 
-\begin{algobox}[title={算法思路}]
-从另一个角度看问题：
-\begin{itemize}
-  \item 将所有下标按高度从大到小排序，依次处理第 \(k\) 高的竖线。处理到它时，之前出现的竖线高度都不低于它。\\
-  因此，这根竖线一定是当前容器的“短板”。
-  \item 容器高度固定为当前高度，只需尽量拉大宽度。\\
-  维护目前为止出现过的最小下标 \(mn\) 与最大下标 \(mx\)，
-  对当前下标 \(idx\) 计算
-  \[
-    \text{area} = h_{idx} \cdot \max\bigl(|idx-mn|, |idx-mx|\bigr).
-  \]
-  \item 每个下标仅参与一次排序和一次更新，整体复杂度为 \(O(n\log n)\)。
-\end{itemize}
+\begin{algobox}[算法思路]
+    将柱子按\textbf{高度从大到小}排序。处理第 $k$ 高的柱子时，它一定是当前构成的容器的“短板”。为了使面积最大，我们需要找到原数组中距离当前柱子\textbf{最远}的且高度大于等于它的柱子。通过维护已遍历柱子的最小和最大索引即可实现。
 \end{algobox}
 
 \begin{codebox}
-\lstset{style=cppstyle}
-\begin{lstlisting}
-#include <bits/stdc++.h>
-using namespace std;
+// 记录原始下标并按高度降序排序
+sort(p, p + n, [&](int x, int y) { return a[x] > a[y]; });
 
-int n, a[105], p[105], ans;
-
-int main() {
-    cin >> n;
-    for (int i = 0; i < n; i++) {
-        cin >> a[i];
-        p[i] = i;           // 记录原始下标
+int mn = 1e9, mx = -1;
+for (int i = 0; i < n; i++) {
+    int idx = p[i]; // 获取原始位置
+    if (mx != -1) {
+        // 计算到最左端和最右端的最大跨度，因为这些柱子都比当前高
+        int width = max(abs(idx - mn), abs(idx - mx)); 
+        ans = max(ans, a[idx] * width);
     }
-
-    // 按高度从大到小排序下标
-    sort(p, p + n, [&](int x, int y) {
-        return a[x] > a[y];
-    });
-
-    int mn = (int)1e9, mx = -1;
-    for (int i = 0; i < n; i++) {
-        int idx = p[i];     // 当前柱子的原始位置
-        if (mx != -1) {
-            int width = max(abs(idx - mn), abs(idx - mx));
-            ans = max(ans, a[idx] * width);
-        }
-        mn = min(mn, idx);
-        mx = max(mx, idx);
-    }
-
-    cout << ans;
-    return 0;
+    mn = min(mn, idx); // 更新已见过的最左边界
+    mx = max(mx, idx); // 更新已见过的最右边界
 }
-\end{lstlisting}
 \end{codebox}
 
-\section*{三、双指针法（最优解） \(O(n)\)}
+% --- 方法三 ---
+\section*{三、双指针法 (Two Pointers - Optimal)}
 
-\begin{algobox}[title={算法核心与证明直观}]
-设左右指针初始为 \(L=0, R=n-1\)，当前面积为
-\[
-  S = (R-L)\cdot\min(h_L,h_R).
-\]
-\begin{itemize}
-  \item 若 \(h_L < h_R\)，则高度由左边决定。如果此时只移动右指针向左，宽度变小，高度最多仍为 \(h_L\)，面积不会变大，所以这些状态可以全部剪枝；因此我们只需要右移短的一侧：\(L\leftarrow L+1\)。
-  \item 同理，当 \(h_L \ge h_R\) 时，左侧再怎么不动，右侧往左移动都不可能得到比当前更大的面积，应当移动右指针：\(R\leftarrow R-1\)。
-  \item 每一步都缩小区间，指针一共移动 \(O(n)\) 次，即可穷尽所有“有希望”的状态。
-\end{itemize}
+\begin{algobox}[算法核心与证明]
+    这是本题的最优解。定义双指针 $L=0, R=n-1$。
+    每次移动两个指针中\textbf{较短}的那一个。
+    
+    \textbf{证明}：假设 $h[L] < h[R]$，当前面积由 $h[L]$ 决定。如果保持 $L$ 不动而左移 $R$，容器宽度变小，而高度受限于 $h[L]$ 绝不可能增加，因此面积必然减小。为了寻找更大的面积，必须舍弃当前的短板 $L$，尝试 $L+1$。
 \end{algobox}
 
+\begin{table}[h]
+\centering
+\caption{算法性能对比}
+\begin{tabular}{llcl} 
+\toprule
+\textbf{方法} & \textbf{时间复杂度} & \textbf{空间复杂度} & \textbf{评价} \\ 
+\midrule
+暴力枚举 & $O(n^2)$ & $O(1)$ & 数据量大时超时 (TLE) \\
+排序贪心 & $O(n \log n)$ & $O(n)$ & 较优，但在原本有序时非最优 \\
+\textbf{双指针} & \textbf{$O(n)$} & \textbf{$O(1)$} & \textbf{最优解，一次遍历} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{codebox}
-\lstset{style=cppstyle}
-\begin{lstlisting}
 #include <bits/stdc++.h>
 using namespace std;
 
-int n, a[105], l, r, mx;
-
 int main() {
+    int n;
     cin >> n;
-    for (int i = 0; i < n; i++) cin >> a[i];
+    vector<int> a(n);
+    for(int i=0; i<n; i++) cin >> a[i];
 
-    l = 0;
-    r = n - 1;
-
-    // 只要没有相遇，就持续计算并尝试移动短板
+    int l = 0, r = n - 1, mx = 0;
+    
     while (l < r) {
-        mx = max(mx, (r - l) * min(a[l], a[r])); // 当前面积
-
-        // 谁更短就移动谁，寻找更高的一侧
-        if (a[l] < a[r]) {
-            l++;
-        } else {
-            r--;
-        }
+        // 计算当前面积
+        int h = min(a[l], a[r]);
+        mx = max(mx, (r - l) * h);
+        
+        // 贪心策略：谁短移动谁
+        if (a[l] < a[r]) l++;
+        else r--;
     }
-
-    cout << mx;
+    
+    cout << mx << endl;
     return 0;
 }
-\end{lstlisting}
 \end{codebox}
 
-\section*{四、通过测试截图}
+\newpage
 
-\begin{algobox}[title={说明}]
-上述三份 C++ 代码均在评测系统上编译运行通过，状态为 \texttt{Accepted}。下图给出其中双指针解法的提交截图作为证明。
+% --- 结果验证与扩展阅读 ---
+% [修改点 2] 增加了评测截图和博客引流部分
+\section*{四、结果验证与扩展阅读}
+
+\begin{algobox}[评测结果]
+    上述三种方法中，双指针法与排序贪心法均可通过测试。以下为最终提交通过的截图：
+    
+    \begin{center}
+        % 请确保文件夹中有 accepted.png
+        \includegraphics[width=0.85\textwidth]{accepted.png} 
+    \end{center}
 \end{algobox}
 
-\begin{center}
-  \includegraphics[width=0.7\textwidth]{accepted.png}\\[0.4em]
-  {\small 图：双指针解法提交记录，状态为 Accepted}
-\end{center}
+\vspace{1em}
+
+\begin{algobox}[算法可视化演示]
+    为了更直观地理解“双指针”是如何移动并剪枝搜索空间的，我在博客中制作了详细的\textbf{动态演示 (Animation)}。
+    
+    \begin{center}
+        % 请确保文件夹中有 blog.png
+        \includegraphics[width=0.85\textwidth]{blog.png}
+        
+        \vspace{1em}
+        
+        % 显眼的跳转链接
+        \href{https://zhe-chao.github.io/solution_of_3123/solution.html}{
+            \fbox{\bfseries \Large $\rightarrow$ 点击此处跳转博客查看动画演示 $\leftarrow$}
+        }
+    \end{center}
+\end{algobox}
+
+\vspace{2em}
+\hrule
+\vspace{1em}
+{\small \hfill \color{gray}  $\cdot$ \quad \today}
 
 \end{document}
