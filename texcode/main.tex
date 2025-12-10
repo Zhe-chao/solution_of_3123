@@ -1,0 +1,237 @@
+\documentclass[12pt]{ctexart}
+
+% 基本排版与数学支持
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+
+% 配色：亮色、清新天蓝风格
+% 背景偏白，主体文字深灰，强调色为天蓝
+\definecolor{pagebg}{HTML}{F9FAFF}   % 页面背景（极浅蓝白）
+\definecolor{cardbg}{HTML}{E0F2FE}   % 说明框背景（淡天蓝）
+\definecolor{codebg}{HTML}{F1F5F9}   % 代码背景（浅灰蓝）
+\definecolor{accent}{HTML}{0EA5E9}   % 主强调色：天蓝
+\definecolor{accent2}{HTML}{38BDF8}  % 辅强调色：更亮的天蓝
+\definecolor{textgray}{HTML}{0F172A} % 主体文字：深蓝灰
+
+\pagecolor{pagebg}
+\color{textgray}
+
+% C++ 代码风格
+\lstdefinestyle{cppstyle}{%
+  language=C++,
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\small\color{textgray},
+  keywordstyle=\color{accent}\bfseries,
+  commentstyle=\color{gray!70!black},
+  stringstyle=\color{accent2},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  stepnumber=1,
+  numbersep=8pt,
+  tabsize=4,
+  showstringspaces=false,
+  breaklines=true,
+  columns=fullflexible
+}
+
+% 算法说明与代码块外框
+\newtcolorbox{algobox}[1][]{%
+  breakable,
+  enhanced,
+  colback=cardbg,
+  colframe=accent,
+  boxrule=0.9pt,
+  arc=3pt,
+  left=8pt,right=8pt,top=6pt,bottom=6pt,
+  % 标题区域只设置字体即可，避免误用 tikz 的 colframe 关键字
+  title style={font=\bfseries\small},
+  coltitle=accent,
+  #1
+}
+
+\newtcolorbox{codebox}[1][]{%
+  breakable,
+  enhanced,
+  colback=codebg,
+  colframe=accent!70,
+  boxrule=0.9pt,
+  arc=3pt,
+  left=4pt,right=4pt,top=4pt,bottom=4pt,
+  #1
+}
+
+\begin{document}
+
+\begin{center}
+  {\Huge 盛最多水的容器 \par}
+  \vspace{0.4em}
+  {\large 三种时间复杂度的对比题解}\par
+  \vspace{0.6em}
+  {\small Problem ID: 3123 / ZJUT}
+\end{center}
+
+\vspace{0.8em}
+
+\begin{algobox}[title={题目简述}]
+给定数组 \(\text{height}[0\ldots n-1]\)，第 \(i\) 条竖线的高度为 \(\text{height}[i]\)。
+在所有两条竖线组成的容器中，求最大面积：
+\[
+  \text{area}(i,j) = (j-i)\cdot\min(\text{height}[i],\text{height}[j]).
+\]
+本题有三个典型解法：暴力 \(O(n^2)\)、排序贪心 \(O(n\log n)\)、双指针 \(O(n)\)。
+\end{algobox}
+
+\section*{一、暴力枚举 \(O(n^2)\)}
+
+\begin{algobox}[title={算法思路}]
+\begin{itemize}
+  \item 用两重循环枚举所有下标对 \((i,j)\)，其中 \(0\le i<j<n\)。
+  \item 对每一对 \((i,j)\) 计算面积 \((j-i)\cdot\min(h_i,h_j)\)，维护最大值。\\
+  这里 \(h_i=\text{height}[i]\)。
+  \item 时间复杂度为 \(O(n^2)\)，当 \(n\) 稍大时代码会偏慢，但逻辑最直观，适合作为入门思路。
+\end{itemize}
+\end{algobox}
+
+\begin{codebox}
+\lstset{style=cppstyle}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, a[105], ans;
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i++) cin >> a[i];
+
+    // 枚举每一种 (i, j) 组合
+    for (int i = 0; i < n; i++) {
+        for (int j = i + 1; j < n; j++) {
+            ans = max(ans, (j - i) * min(a[i], a[j]));
+        }
+    }
+
+    cout << ans;
+    return 0;
+}
+\end{lstlisting}
+\end{codebox}
+
+\section*{二、排序贪心 \(O(n\log n)\)}
+
+\begin{algobox}[title={算法思路}]
+从另一个角度看问题：
+\begin{itemize}
+  \item 将所有下标按高度从大到小排序，依次处理第 \(k\) 高的竖线。处理到它时，之前出现的竖线高度都不低于它。\\
+  因此，这根竖线一定是当前容器的“短板”。
+  \item 容器高度固定为当前高度，只需尽量拉大宽度。\\
+  维护目前为止出现过的最小下标 \(mn\) 与最大下标 \(mx\)，
+  对当前下标 \(idx\) 计算
+  \[
+    \text{area} = h_{idx} \cdot \max\bigl(|idx-mn|, |idx-mx|\bigr).
+  \]
+  \item 每个下标仅参与一次排序和一次更新，整体复杂度为 \(O(n\log n)\)。
+\end{itemize}
+\end{algobox}
+
+\begin{codebox}
+\lstset{style=cppstyle}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, a[105], p[105], ans;
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i++) {
+        cin >> a[i];
+        p[i] = i;           // 记录原始下标
+    }
+
+    // 按高度从大到小排序下标
+    sort(p, p + n, [&](int x, int y) {
+        return a[x] > a[y];
+    });
+
+    int mn = (int)1e9, mx = -1;
+    for (int i = 0; i < n; i++) {
+        int idx = p[i];     // 当前柱子的原始位置
+        if (mx != -1) {
+            int width = max(abs(idx - mn), abs(idx - mx));
+            ans = max(ans, a[idx] * width);
+        }
+        mn = min(mn, idx);
+        mx = max(mx, idx);
+    }
+
+    cout << ans;
+    return 0;
+}
+\end{lstlisting}
+\end{codebox}
+
+\section*{三、双指针法（最优解） \(O(n)\)}
+
+\begin{algobox}[title={算法核心与证明直观}]
+设左右指针初始为 \(L=0, R=n-1\)，当前面积为
+\[
+  S = (R-L)\cdot\min(h_L,h_R).
+\]
+\begin{itemize}
+  \item 若 \(h_L < h_R\)，则高度由左边决定。如果此时只移动右指针向左，宽度变小，高度最多仍为 \(h_L\)，面积不会变大，所以这些状态可以全部剪枝；因此我们只需要右移短的一侧：\(L\leftarrow L+1\)。
+  \item 同理，当 \(h_L \ge h_R\) 时，左侧再怎么不动，右侧往左移动都不可能得到比当前更大的面积，应当移动右指针：\(R\leftarrow R-1\)。
+  \item 每一步都缩小区间，指针一共移动 \(O(n)\) 次，即可穷尽所有“有希望”的状态。
+\end{itemize}
+\end{algobox}
+
+\begin{codebox}
+\lstset{style=cppstyle}
+\begin{lstlisting}
+#include <bits/stdc++.h>
+using namespace std;
+
+int n, a[105], l, r, mx;
+
+int main() {
+    cin >> n;
+    for (int i = 0; i < n; i++) cin >> a[i];
+
+    l = 0;
+    r = n - 1;
+
+    // 只要没有相遇，就持续计算并尝试移动短板
+    while (l < r) {
+        mx = max(mx, (r - l) * min(a[l], a[r])); // 当前面积
+
+        // 谁更短就移动谁，寻找更高的一侧
+        if (a[l] < a[r]) {
+            l++;
+        } else {
+            r--;
+        }
+    }
+
+    cout << mx;
+    return 0;
+}
+\end{lstlisting}
+\end{codebox}
+
+\section*{四、通过测试截图}
+
+\begin{algobox}[title={说明}]
+上述三份 C++ 代码均在评测系统上编译运行通过，状态为 \texttt{Accepted}。下图给出其中双指针解法的提交截图作为证明。
+\end{algobox}
+
+\begin{center}
+  \includegraphics[width=0.7\textwidth]{accepted.png}\\[0.4em]
+  {\small 图：双指针解法提交记录，状态为 Accepted}
+\end{center}
+
+\end{document}
